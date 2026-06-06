@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập — HuyRC</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/layout :: header}"></div>
+
+  <div class="auth-wrap">
+    <form class="auth-card" th:action="@{/login}" method="post">
+      <h1>ĐĂNG NHẬP</h1>
+
+      <div class="alert ok"     th:if="${param.registered != null}">Đăng ký thành công! Mời bạn đăng nhập.</div>
+      <div class="alert ok"     th:if="${param.logout != null}">Bạn đã đăng xuất.</div>
+      <div class="alert error"  th:if="${param.error != null}">Email hoặc mật khẩu không đúng.</div>
+
+      <label>Email</label>
+      <input type="email" name="email" placeholder="email@example.com" required autofocus>
+
+      <label>Mật khẩu</label>
+      <input type="password" name="password" placeholder="••••••••" required>
+
+      <button class="btn" type="submit">ĐĂNG NHẬP</button>
+
+      <p class="auth-foot">Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a></p>
+
+      <div class="auth-demo">
+        <strong>Tài khoản demo:</strong><br>
+        Khách: <code>khach@huyrc.vn</code> / <code>123456</code><br>
+        Admin: <code>admin@huyrc.vn</code> / <code>admin123</code>
+      </div>
+    </form>
+  </div>
+
+  <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Đơn hàng #' + ${order.id} + ' — HuyRC'">Đơn hàng</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/layout :: header}"></div>
+
+  <div class="container">
+    <div class="order-success">
+      <div class="check">✓</div>
+      <h1>ĐẶT HÀNG THÀNH CÔNG</h1>
+      <p>Cảm ơn bạn! Đơn hàng <strong th:text="'#' + ${order.id}">#1</strong> đã được ghi nhận.</p>
+    </div>
+
+    <div class="order-box">
+      <div class="order-head">
+        <div>
+          <span class="cat">Mã đơn</span>
+          <h3 th:text="'#' + ${order.id}">#1</h3>
+        </div>
+        <span class="status" th:text="${order.status}">PENDING</span>
+      </div>
+
+      <div class="order-ship">
+        <div><span>Người nhận:</span> <strong th:text="${order.recipientName}">Tên</strong></div>
+        <div><span>Điện thoại:</span> <strong th:text="${order.phone}">SĐT</strong></div>
+        <div><span>Địa chỉ:</span> <strong th:text="${order.address}">Địa chỉ</strong></div>
+      </div>
+
+      <table class="order-table">
+        <thead>
+          <tr><th>Sản phẩm</th><th>Đơn giá</th><th>SL</th><th>Thành tiền</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="it : ${order.items}">
+            <td th:text="${it.productName}">Tên</td>
+            <td th:text="${#numbers.formatDecimal(it.price,0,'POINT',0,'NONE')} + 'đ'">0đ</td>
+            <td th:text="${it.quantity}">1</td>
+            <td th:text="${#numbers.formatDecimal(it.lineTotal,0,'POINT',0,'NONE')} + 'đ'">0đ</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3">TỔNG CỘNG</td>
+            <td class="grand" th:text="${#numbers.formatDecimal(order.totalAmount,0,'POINT',0,'NONE')} + 'đ'">0đ</td></tr>
+        </tfoot>
+      </table>
+
+      <div class="order-actions">
+        <a class="btn btn-outline" th:href="@{/orders}">ĐƠN HÀNG CỦA TÔI</a>
+        <a class="btn" th:href="@{/}">TIẾP TỤC MUA SẮM</a>
+      </div>
+    </div>
+  </div>
+
+  <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+package com.javgr.clothingshop.repository;
+
+import com.javgr.clothingshop.entity.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ProductRepository extends JpaRepository<Product, Integer> {
+
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN FETCH p.images " +
+           "LEFT JOIN FETCH p.category " +
+           "ORDER BY p.id")
+    List<Product> findAllWithDetails();
+
+    @Query("SELECT p FROM Product p " +
+           "LEFT JOIN FETCH p.images " +
+           "LEFT JOIN FETCH p.category " +
+           "WHERE p.id = :id")
+    Optional<Product> findByIdWithDetails(Integer id);
+}
