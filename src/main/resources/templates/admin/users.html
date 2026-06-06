@@ -1,0 +1,30 @@
+<!doctype html>
+<div th:replace="admin/layout :: content">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-semibold mb-6">Users</h1>
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead>
+          <tr class="text-left text-sm text-gray-500"><th class="px-3 py-2">ID</th><th class="px-3 py-2">Name</th><th class="px-3 py-2">Email</th><th class="px-3 py-2">Role</th></tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+          <tr th:each="u : ${users.content}">
+            <td class="px-3 py-3" th:text="${u.id}"></td>
+            <td class="px-3 py-3" th:text="${u.fullName}"></td>
+            <td class="px-3 py-3" th:text="${u.email}"></td>
+            <td class="px-3 py-3" th:text="${u.role}"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="mt-4 flex items-center justify-between">
+        <div></div>
+        <div class="flex items-center gap-2">
+          <a th:href="@{'/admin/users?page=' + (${users.number} - 1)}" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200">Prev</a>
+          <span class="text-sm text-gray-600 dark:text-gray-300" th:text="${users.number + 1} + '/' + ${users.totalPages}"></span>
+          <a th:href="@{'/admin/users?page=' + (${users.number} + 1)}" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200">Next</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

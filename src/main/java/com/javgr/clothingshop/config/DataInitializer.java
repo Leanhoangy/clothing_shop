@@ -10,26 +10,31 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class DataInitializer {
 
-    // Tao san 2 tai khoan demo neu DB chua co (mat khau ma hoa BCrypt).
+    // Tao san 2 tai khoan demo neu DB chua co
     @Bean
     public CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder encoder) {
         return args -> {
-            createIfMissing(userRepository, encoder, "admin@huyrc.vn", "Quản trị viên", "admin123", "ADMIN");
-            createIfMissing(userRepository, encoder, "khach@huyrc.vn", "Khách Demo", "123456", "CUSTOMER");
+            createOrUpdateDefaultUser(userRepository, "admin@huyrc.vn", "Quản trị viên", "admin123", "ADMIN");
+            createOrUpdateDefaultUser(userRepository, "khach@huyrc.vn", "Khách Demo", "123456", "CUSTOMER");
         };
     }
 
-    private void createIfMissing(UserRepository repo, PasswordEncoder encoder,
-                                 String email, String name, String rawPassword, String role) {
-        if (repo.existsByEmail(email)) {
-            return;
-        }
-        User u = new User();
-        u.setEmail(email);
-        u.setFullName(name);
-        u.setPassword(encoder.encode(rawPassword));
-        u.setRole(role);
-        u.setEnabled(true);
-        repo.save(u);
+    private void createOrUpdateDefaultUser(UserRepository repo,
+                                           String email, String name, String rawPassword, String role) {
+        repo.findByEmail(email).ifPresentOrElse(user -> {
+            user.setFullName(name);
+            user.setPassword(rawPassword);
+            user.setRole(role);
+            user.setEnabled(true);
+            repo.save(user);
+        }, () -> {
+            User u = new User();
+            u.setEmail(email);
+            u.setFullName(name);
+            u.setPassword(rawPassword);
+            u.setRole(role);
+            u.setEnabled(true);
+            repo.save(u);
+        });
     }
 }

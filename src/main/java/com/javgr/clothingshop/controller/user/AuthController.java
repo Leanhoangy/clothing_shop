@@ -1,4 +1,4 @@
-package com.javgr.clothingshop.controller;
+package com.javgr.clothingshop.controller.user;
 
 import com.javgr.clothingshop.dto.RegisterForm;
 import com.javgr.clothingshop.entity.User;
@@ -23,33 +23,32 @@ public class AuthController {
 
     @GetMapping("/login")
     public String login() {
-        return "login";
+        return "user/login";
     }
 
     @GetMapping("/register")
     public String registerForm(Model model) {
         model.addAttribute("form", new RegisterForm());
-        return "register";
+        return "user/register";
     }
 
     @PostMapping("/register")
     public String register(@ModelAttribute("form") RegisterForm form, Model model) {
-        // Kiem tra so bo
         if (form.getEmail() == null || form.getEmail().isBlank()
                 || form.getPassword() == null || form.getPassword().length() < 6
                 || form.getFullName() == null || form.getFullName().isBlank()) {
             model.addAttribute("error", "Vui lòng nhập đủ thông tin, mật khẩu tối thiểu 6 ký tự.");
-            return "register";
+            return "user/register";
         }
         if (userRepository.existsByEmail(form.getEmail())) {
             model.addAttribute("error", "Email này đã được đăng ký.");
-            return "register";
+            return "user/register";
         }
 
         User u = new User();
         u.setFullName(form.getFullName().trim());
         u.setEmail(form.getEmail().trim().toLowerCase());
-        u.setPassword(passwordEncoder.encode(form.getPassword()));  // ma hoa BCrypt
+        u.setPassword(form.getPassword());
         u.setPhone(form.getPhone());
         u.setRole("CUSTOMER");
         u.setEnabled(true);
