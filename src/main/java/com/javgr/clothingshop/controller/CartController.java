@@ -38,20 +38,35 @@ public class CartController {
     @PostMapping("/add")
     @Transactional
     public String add(@RequestParam Integer productId,
+                      @RequestParam(required = false) String size,
                       @RequestParam(defaultValue = "1") Integer quantity,
+                      @RequestParam(defaultValue = "add") String action,
+                      RedirectAttributes ra,
                       Authentication auth) {
+        if (size == null || size.isBlank()) {
+            ra.addFlashAttribute("err", "Vui lòng chọn kích cỡ.");
+            return "redirect:/products/" + productId;
+        }
         User u = currentUser(auth);
-        CartItem item = cartRepository.findByUserIdAndProductId(u.getId(), productId)
+        int qty = Math.max(1, quantity);
+        CartItem item = cartRepository.findByUserIdAndProductIdAndSize(u.getId(), productId, size)
                 .orElseGet(() -> {
                     CartItem c = new CartItem();
                     c.setUserId(u.getId());
                     c.setProductId(productId);
+                    c.setSize(size);
                     c.setQuantity(0);
                     return c;
                 });
-        item.setQuantity(item.getQuantity() + Math.max(1, quantity));
+        item.setQuantity(item.getQuantity() + qty);
         cartRepository.save(item);
-        return "redirect:/cart";
+
+        // MUA NGAY -> sang gio hang; THEM VAO GIO -> o lai trang sp + thong bao
+        if ("buy".equals(action)) {
+            return "redirect:/cart";
+        }
+        ra.addFlashAttribute("added", true);
+        return "redirect:/products/" + productId;
     }
 
     // ----- Xem gio hang -----
@@ -66,7 +81,7 @@ public class CartController {
             Product p = productRepository.findById(ci.getProductId()).orElse(null);
             if (p == null) continue;
             BigDecimal sub = p.getPrice().multiply(BigDecimal.valueOf(ci.getQuantity()));
-            lines.add(new CartLine(p, ci.getQuantity(), sub));
+            lines.add(new CartLine(p, ci.getSize(), ci.getQuantity(), sub));
             total = total.add(sub);
         }
 
@@ -79,9 +94,10 @@ public class CartController {
     // ----- Doi so luong -----
     @PostMapping("/update")
     @Transactional
-    public String update(@RequestParam Integer productId, @RequestParam Integer quantity, Authentication auth) {
+    public String update(@RequestParam Integer productId, @RequestParam(required = false) String size,
+                         @RequestParam Integer quantity, Authentication auth) {
         User u = currentUser(auth);
-        cartRepository.findByUserIdAndProductId(u.getId(), productId).ifPresent(ci -> {
+        cartRepository.findByUserIdAndProductIdAndSize(u.getId(), productId, size).ifPresent(ci -> {
             if (quantity <= 0) cartRepository.delete(ci);
             else { ci.setQuantity(quantity); cartRepository.save(ci); }
         });
@@ -91,9 +107,10 @@ public class CartController {
     // ----- Xoa 1 san pham khoi gio -----
     @PostMapping("/remove")
     @Transactional
-    public String remove(@RequestParam Integer productId, Authentication auth) {
+    public String remove(@RequestParam Integer productId, @RequestParam(required = false) String size,
+                         Authentication auth) {
         User u = currentUser(auth);
-        cartRepository.findByUserIdAndProductId(u.getId(), productId).ifPresent(cartRepository::delete);
+        cartRepository.findByUserIdAndProductIdAndSize(u.getId(), productId, size).ifPresent(cartRepository::delete);
         return "redirect:/cart";
     }
 
@@ -103,6 +120,8 @@ public class CartController {
     public String checkout(@RequestParam String recipientName,
                            @RequestParam String phone,
                            @RequestParam String address,
+                           @RequestParam(required = false) String note,
+                           @RequestParam(defaultValue = "CASH") String paymentMethod,
                            Authentication auth, RedirectAttributes ra) {
         User u = currentUser(auth);
         List<CartItem> items = cartRepository.findByUserId(u.getId());
@@ -111,12 +130,25 @@ public class CartController {
             return "redirect:/cart";
         }
 
+        // Kiem tra du ton kho truoc khi dat
+        for (CartItem ci : items) {
+            Product p = productRepository.findById(ci.getProductId()).orElse(null);
+            if (p == null) continue;
+            int stock = p.getStock() == null ? 0 : p.getStock();
+            if (stock < ci.getQuantity()) {
+                ra.addFlashAttribute("err", "Sản phẩm \"" + p.getName() + "\" không đủ hàng (còn " + stock + ").");
+                return "redirect:/cart";
+            }
+        }
+
         Order order = new Order();
         order.setUserId(u.getId());
         order.setRecipientName(recipientName);
         order.setPhone(phone);
         order.setAddress(address);
-        order.setStatus("PENDING");
+        order.setNote(note);
+        order.setPaymentMethod("BANK".equals(paymentMethod) ? "BANK" : "CASH");
+        order.setStatus("PROCESSING");        // dang xu ly
 
         BigDecimal total = BigDecimal.ZERO;
         for (CartItem ci : items) {
@@ -125,9 +157,14 @@ public class CartController {
             OrderItem oi = new OrderItem();
             oi.setProductId(p.getId());
             oi.setProductName(p.getName());   // snapshot ten + gia luc dat
+            oi.setSize(ci.getSize());
             oi.setPrice(p.getPrice());
             oi.setQuantity(ci.getQuantity());
             order.addItem(oi);
+
+            p.setStock(p.getStock() - ci.getQuantity());   // tru ton kho ngay khi dat
+            productRepository.save(p);
+
             total = total.add(p.getPrice().multiply(BigDecimal.valueOf(ci.getQuantity())));
         }
         order.setTotalAmount(total);

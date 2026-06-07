@@ -1,9 +1,36 @@
 <!doctype html>
 <div th:replace="admin/layout">
   <div th:fragment="content" class="max-w-7xl mx-auto">
-    <h1 class="text-2xl font-semibold mb-6">Orders</h1>
+    <h1 class="text-2xl font-semibold mb-6">Đơn hàng</h1>
     <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-      <div class="text-sm text-gray-500">Orders management UI scaffold</div>
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead>
+          <tr class="text-left text-sm text-gray-500">
+            <th class="px-3 py-2">Mã đơn</th>
+            <th class="px-3 py-2">Khách hàng</th>
+            <th class="px-3 py-2">Điện thoại</th>
+            <th class="px-3 py-2">Tổng tiền</th>
+            <th class="px-3 py-2">Trạng thái</th>
+            <th class="px-3 py-2"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+          <tr th:if="${#lists.isEmpty(orders)}">
+            <td colspan="6" class="px-3 py-3 text-sm text-gray-500">Chưa có đơn hàng</td>
+          </tr>
+          <tr th:each="o : ${orders}" class="table-row-hover">
+            <td class="px-3 py-3" th:text="'ORD-' + ${o.id}"></td>
+            <td class="px-3 py-3" th:text="${o.recipientName}"></td>
+            <td class="px-3 py-3" th:text="${o.phone}"></td>
+            <td class="px-3 py-3" th:text="${#numbers.formatDecimal(o.totalAmount,0,'POINT',0,'NONE')} + 'đ'"></td>
+            <td class="px-3 py-3"
+                th:text="${o.status == 'COMPLETED'} ? 'Hoàn thành' : (${o.status == 'CANCELLED'} ? 'Đã huỷ' : (${o.status == 'REFUNDING'} ? 'Chờ hoàn tiền' : 'Đang xử lý'))"></td>
+            <td class="px-3 py-3">
+              <a th:href="@{/admin/orders/{id}(id=${o.id})}" class="text-indigo-600 hover:underline">Xem</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

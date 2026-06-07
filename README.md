@@ -1,4 +1,4 @@
-# HuyRC — Clothing Shop
+# MoPo — Clothing Shop
 
 Website bán quần áo demo, xây bằng **Spring Boot + Thymeleaf + MySQL**.
 Giao diện tham khảo phong cách yame.vn: trang chủ, chi tiết sản phẩm, giỏ hàng, đặt hàng, đăng nhập/đăng ký.

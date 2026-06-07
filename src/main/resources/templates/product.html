@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title th:text="${product.name} + ' — YASHOP'">Chi tiết sản phẩm</title>
+  <title th:text="${product.name} + ' — MoPo'">Chi tiết sản phẩm</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
   <div th:replace="~{fragments/layout :: header}"></div>
+
+  <!-- Thông báo đã thêm vào giỏ -->
+  <div class="toast" id="toast" th:if="${added}">✓ Đã thêm sản phẩm vào giỏ hàng!</div>
 
   <div class="container">
     <nav class="breadcrumb">
@@ -37,25 +40,47 @@
         </div>
         <p class="desc" th:text="${product.description}">Mô tả sản phẩm</p>
 
-        <div class="sizes">
-          <span class="size-label">Kích cỡ:</span>
-          <span class="size">S</span><span class="size">M</span>
-          <span class="size">L</span><span class="size">XL</span>
-        </div>
+        <!-- Thông báo lỗi (vd chưa chọn kích cỡ) -->
+        <div class="alert error" th:if="${err}" th:text="${err}">Lỗi</div>
 
-        <div class="stock-line">
+        <!-- Tồn kho map trực tiếp từ DB -->
+        <div class="stock-line" th:if="${product.stock > 0}">
           <span class="dot"></span> Còn hàng — <strong th:text="${product.stock}">0</strong> sản phẩm trong kho
         </div>
+        <div class="stock-line out" th:unless="${product.stock > 0}">
+          <span class="dot out"></span> <strong>Hết hàng</strong>
+        </div>
 
-        <form class="buy-actions" th:action="@{/cart/add}" method="post">
+        <form class="buy-form" id="buyForm" th:action="@{/cart/add}" method="post">
           <input type="hidden" name="productId" th:value="${product.id}">
-          <div class="qty">
-            <label>Số lượng</label>
-            <input type="number" name="quantity" value="1" min="1" max="99">
+
+          <!-- Chọn kích cỡ (bắt buộc) -->
+          <div class="sizes">
+            <span class="field-label">Kích cỡ:</span>
+            <label class="size"><input type="radio" name="size" value="S"><span>S</span></label>
+            <label class="size"><input type="radio" name="size" value="M"><span>M</span></label>
+            <label class="size"><input type="radio" name="size" value="L"><span>L</span></label>
+            <label class="size"><input type="radio" name="size" value="XL"><span>XL</span></label>
           </div>
-          <div class="buy-btns">
-            <button class="btn btn-outline" type="submit">THÊM VÀO GIỎ</button>
-            <button class="btn" type="submit">MUA NGAY</button>
+          <p class="size-warning" id="sizeWarning">⚠ Vui lòng chọn kích cỡ</p>
+
+          <!-- Số lượng có nút +/- -->
+          <div class="qty">
+            <span class="field-label">Số lượng:</span>
+            <div class="qty-control">
+              <button type="button" class="qty-btn" id="qtyMinus">−</button>
+              <input type="number" name="quantity" id="qtyInput" value="1" min="1"
+                     th:attr="max=${product.stock}">
+              <button type="button" class="qty-btn" id="qtyPlus">+</button>
+            </div>
+          </div>
+
+          <div class="buy-btns" th:if="${product.stock > 0}">
+            <button class="btn btn-outline" type="submit" name="action" value="add">THÊM VÀO GIỎ</button>
+            <button class="btn" type="submit" name="action" value="buy">MUA NGAY</button>
+          </div>
+          <div class="buy-btns" th:unless="${product.stock > 0}">
+            <button class="btn" type="button" disabled>HẾT HÀNG</button>
           </div>
         </form>
 
@@ -67,6 +92,45 @@
       </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      var input = document.getElementById('qtyInput');
+      var minus = document.getElementById('qtyMinus');
+      var plus  = document.getElementById('qtyPlus');
+      if (!input) return;
+      var max = parseInt(input.getAttribute('max')) || 99;
+      function clamp(v) { return Math.max(1, Math.min(max, v)); }
+      minus.addEventListener('click', function () { input.value = clamp((parseInt(input.value) || 1) - 1); });
+      plus.addEventListener('click',  function () { input.value = clamp((parseInt(input.value) || 1) + 1); });
+      input.addEventListener('change', function () { input.value = clamp(parseInt(input.value) || 1); });
+    })();
+
+    // Tự ẩn toast sau 2.5s
+    (function () {
+      var t = document.getElementById('toast');
+      if (!t) return;
+      setTimeout(function () { t.classList.add('hide'); }, 2500);
+    })();
+
+    // Bắt buộc chọn kích cỡ trước khi thêm giỏ / mua ngay
+    (function () {
+      var form = document.getElementById('buyForm');
+      var warn = document.getElementById('sizeWarning');
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        if (!form.querySelector('input[name="size"]:checked')) {
+          e.preventDefault();
+          warn.classList.add('show');
+          document.querySelector('.sizes').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+      // Ẩn cảnh báo ngay khi chọn size
+      form.querySelectorAll('input[name="size"]').forEach(function (r) {
+        r.addEventListener('change', function () { warn.classList.remove('show'); });
+      });
+    })();
+  </script>
 
   <div th:replace="~{fragments/layout :: footer}"></div>
 </body>

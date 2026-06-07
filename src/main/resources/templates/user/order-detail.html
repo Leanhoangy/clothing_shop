@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title th:text="'Đơn hàng #' + ${order.id} + ' — HuyRC'">Đơn hàng</title>
+  <title th:text="'Đơn hàng #' + ${order.id} + ' — MoPo'">Đơn hàng</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -22,29 +22,36 @@
           <span class="cat">Mã đơn</span>
           <h3 th:text="'#' + ${order.id}">#1</h3>
         </div>
-        <span class="status" th:text="${order.status}">PENDING</span>
+        <span class="status"
+              th:classappend="${order.status == 'COMPLETED'} ? ' done' : (${order.status == 'CANCELLED'} ? ' cancel' : (${order.status == 'REFUNDING'} ? ' refund' : ' proc'))"
+              th:text="${order.status == 'COMPLETED'} ? 'Hoàn thành' : (${order.status == 'CANCELLED'} ? 'Đã huỷ' : (${order.status == 'REFUNDING'} ? 'Chờ hoàn tiền' : 'Đang xử lý'))">Đang xử lý</span>
       </div>
 
       <div class="order-ship">
         <div><span>Người nhận:</span> <strong th:text="${order.recipientName}">Tên</strong></div>
         <div><span>Điện thoại:</span> <strong th:text="${order.phone}">SĐT</strong></div>
         <div><span>Địa chỉ:</span> <strong th:text="${order.address}">Địa chỉ</strong></div>
+        <div><span>Thanh toán:</span>
+          <strong th:text="${order.paymentMethod == 'BANK'} ? 'Chuyển khoản' : 'Tiền mặt'">Tiền mặt</strong></div>
+        <div th:if="${order.note != null and !order.note.isBlank()}">
+          <span>Ghi chú:</span> <strong th:text="${order.note}">...</strong></div>
       </div>
 
       <table class="order-table">
         <thead>
-          <tr><th>Sản phẩm</th><th>Đơn giá</th><th>SL</th><th>Thành tiền</th></tr>
+          <tr><th>Sản phẩm</th><th>Size</th><th>Đơn giá</th><th>SL</th><th>Thành tiền</th></tr>
         </thead>
         <tbody>
           <tr th:each="it : ${order.items}">
             <td th:text="${it.productName}">Tên</td>
+            <td th:text="${it.size != null ? it.size : '-'}">-</td>
             <td th:text="${#numbers.formatDecimal(it.price,0,'POINT',0,'NONE')} + 'đ'">0đ</td>
             <td th:text="${it.quantity}">1</td>
             <td th:text="${#numbers.formatDecimal(it.lineTotal,0,'POINT',0,'NONE')} + 'đ'">0đ</td>
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">TỔNG CỘNG</td>
+          <tr><td colspan="4">TỔNG CỘNG</td>
             <td class="grand" th:text="${#numbers.formatDecimal(order.totalAmount,0,'POINT',0,'NONE')} + 'đ'">0đ</td></tr>
         </tfoot>
       </table>
@@ -52,7 +59,28 @@
       <div class="order-actions">
         <a class="btn btn-outline" th:href="@{/orders}">ĐƠN HÀNG CỦA TÔI</a>
         <a class="btn" th:href="@{/}">TIẾP TỤC MUA SẮM</a>
+        <!-- Tiền mặt: huỷ ngay -->
+        <form th:if="${order.status == 'PROCESSING' and order.paymentMethod != 'BANK'}"
+              th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post"
+              onsubmit="return confirm('Xác nhận huỷ đơn?')" style="flex:1">
+          <button class="btn btn-danger" type="submit" style="width:100%">HUỶ ĐƠN HÀNG</button>
+        </form>
       </div>
+
+      <!-- Chuyển khoản: nhập thông tin nhận hoàn tiền rồi huỷ -->
+      <form class="refund-box" th:if="${order.status == 'PROCESSING' and order.paymentMethod == 'BANK'}"
+            th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post"
+            onsubmit="return confirm('Xác nhận huỷ đơn? Shop sẽ hoàn tiền vào tài khoản bạn nhập.')">
+        <h3>HUỶ ĐƠN & YÊU CẦU HOÀN TIỀN</h3>
+        <p class="refund-note">Đơn đã thanh toán chuyển khoản. Nhập tài khoản để shop hoàn lại tiền:</p>
+        <label>Ngân hàng</label>
+        <input type="text" name="refundBank" placeholder="VD: Vietcombank" required>
+        <label>Số tài khoản</label>
+        <input type="text" name="refundAccount" placeholder="Số tài khoản nhận tiền" required>
+        <label>Chủ tài khoản</label>
+        <input type="text" name="refundAccountName" th:value="${order.recipientName}" placeholder="Tên chủ tài khoản">
+        <button class="btn btn-danger" type="submit">HUỶ ĐƠN & HOÀN TIỀN</button>
+      </form>
     </div>
   </div>
 

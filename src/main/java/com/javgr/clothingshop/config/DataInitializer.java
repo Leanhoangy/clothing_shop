@@ -14,16 +14,17 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder encoder) {
         return args -> {
-            createOrUpdateDefaultUser(userRepository, "admin@huyrc.vn", "Quản trị viên", "admin123", "ADMIN");
-            createOrUpdateDefaultUser(userRepository, "khach@huyrc.vn", "Khách Demo", "123456", "CUSTOMER");
+            createOrUpdateDefaultUser(userRepository, encoder, "admin@huyrc.vn", "Quản trị viên", "admin123", "ADMIN");
+            createOrUpdateDefaultUser(userRepository, encoder, "khach@huyrc.vn", "Khách Demo", "123456", "CUSTOMER");
         };
     }
 
-    private void createOrUpdateDefaultUser(UserRepository repo,
+    private void createOrUpdateDefaultUser(UserRepository repo, PasswordEncoder encoder,
                                            String email, String name, String rawPassword, String role) {
+        String hashed = encoder.encode(rawPassword);   // ma hoa BCrypt
         repo.findByEmail(email).ifPresentOrElse(user -> {
             user.setFullName(name);
-            user.setPassword(rawPassword);
+            user.setPassword(hashed);
             user.setRole(role);
             user.setEnabled(true);
             repo.save(user);
@@ -31,7 +32,7 @@ public class DataInitializer {
             User u = new User();
             u.setEmail(email);
             u.setFullName(name);
-            u.setPassword(rawPassword);
+            u.setPassword(hashed);
             u.setRole(role);
             u.setEnabled(true);
             repo.save(u);

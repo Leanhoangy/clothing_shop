@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông tin cá nhân — MoPo</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <div th:replace="~{fragments/layout :: header}"></div>
+
+  <div class="container">
+    <h1 class="page-title">THÔNG TIN CÁ NHÂN</h1>
+
+    <div class="account-layout">
+      <!-- Thông tin tài khoản -->
+      <div class="account-card">
+        <div class="alert ok" th:if="${updated}">Đã cập nhật thông tin thành công.</div>
+
+        <div class="account-avatar">
+          <span th:text="${#strings.substring(user.fullName,0,1)}">A</span>
+        </div>
+
+        <form th:action="@{/account/update}" method="post">
+          <label>Email</label>
+          <input type="email" th:value="${user.email}" disabled>
+          <small class="opt">Email dùng để đăng nhập, không thể thay đổi.</small>
+
+          <label>Họ và tên</label>
+          <input type="text" name="fullName" th:value="${user.fullName}" required>
+
+          <label>Số điện thoại</label>
+          <input type="text" name="phone" th:value="${user.phone}" placeholder="09xxxxxxxx">
+
+          <label>Vai trò</label>
+          <input type="text" th:value="${user.role == 'ADMIN'} ? 'Quản trị viên' : 'Khách hàng'" disabled>
+
+          <button class="btn" type="submit">LƯU THAY ĐỔI</button>
+        </form>
+      </div>
+
+      <!-- Liên kết nhanh -->
+      <aside class="account-side">
+        <a class="account-link" th:href="@{/orders}">🧾 Đơn hàng của tôi</a>
+        <a class="account-link" th:href="@{/cart}">🛒 Giỏ hàng</a>
+        <a class="account-link" th:href="@{/}">🏬 Tiếp tục mua sắm</a>
+        <a class="account-link admin" th:if="${user.role == 'ADMIN'}" th:href="@{/admin/dashboard}">⚙️ Trang quản trị</a>
+        <form th:action="@{/logout}" method="post">
+          <button class="account-logout" type="submit">Đăng xuất</button>
+        </form>
+      </aside>
+    </div>
+  </div>
+
+  <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

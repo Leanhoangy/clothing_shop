@@ -7,23 +7,20 @@
 <header th:fragment="header" class="site-header">
   <div class="topbar">FREESHIP ĐƠN TỪ 200K · ĐỔI TRẢ TRONG 30 NGÀY · HOTLINE 1900 0000</div>
   <div class="header-main">
-    <a class="logo" th:href="@{/}">Huy<span>RC</span></a>
-    <nav class="nav">
-      <a th:href="@{/}">TRANG PHỤC</a>
-      <a th:href="@{/}">ÁO</a>
-      <a th:href="@{/}">QUẦN</a>
-      <a th:href="@{/}">GIÀY</a>
-      <a class="sale" th:href="@{/}">SALE</a>
-    </nav>
+    <button class="hamburger" id="menuToggle" type="button" aria-label="Danh mục">
+      <span></span><span></span><span></span>
+    </button>
+    <a class="logo" th:href="@{/}">Mo<span>Po</span></a>
+
     <div class="header-actions">
-      <span title="Tìm kiếm">🔍</span>
+      <button class="icon-btn" id="searchToggle" type="button" title="Tìm kiếm">🔍</button>
 
       <!-- Chưa đăng nhập -->
       <a sec:authorize="!isAuthenticated()" class="auth-link" th:href="@{/login}">Đăng nhập</a>
 
       <!-- Đã đăng nhập -->
       <span sec:authorize="isAuthenticated()" class="user-box">
-        👤 <span sec:authentication="name">user</span>
+        <a class="user-link" th:href="@{/account}">👤 <span sec:authentication="name">user</span></a>
         <form th:action="@{/logout}" method="post" style="display:inline">
           <button type="submit" class="logout-btn">Đăng xuất</button>
         </form>
@@ -32,13 +29,59 @@
       <a title="Giỏ hàng" class="cart" th:href="@{/cart}">🛒<i th:text="${cartCount}">0</i></a>
     </div>
   </div>
+
+  <!-- Thanh tìm kiếm (ẩn, bấm 🔍 mới hiện) -->
+  <div class="search-bar" id="searchBar">
+    <form th:action="@{/search}" method="get">
+      <input type="text" name="q" th:value="${keyword}" placeholder="Nhập tên sản phẩm..." autocomplete="off">
+      <button type="submit">Tìm kiếm</button>
+    </form>
+  </div>
+
+  <!-- Drawer danh mục (ẩn, bấm ☰ mới hiện) -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head">
+      <span>DANH MỤC SẢN PHẨM</span>
+      <button class="drawer-close" id="drawerClose" type="button" aria-label="Đóng">✕</button>
+    </div>
+    <a class="drawer-all" th:href="@{/}">Tất cả sản phẩm</a>
+    <details class="drawer-group" th:each="g : ${groups}">
+      <summary th:text="${g.parent.name}">Nhóm</summary>
+      <div class="drawer-subs">
+        <a th:each="c : ${g.children}" th:href="@{/(categoryId=${c.id})}" th:text="${c.name}">Danh mục con</a>
+      </div>
+    </details>
+  </aside>
+
+  <script>
+    (function () {
+      var toggle = document.getElementById('menuToggle');
+      var drawer = document.getElementById('drawer');
+      var overlay = document.getElementById('drawerOverlay');
+      var closeBtn = document.getElementById('drawerClose');
+      function openDrawer() { drawer.classList.add('open'); overlay.classList.add('open'); }
+      function closeDrawer() { drawer.classList.remove('open'); overlay.classList.remove('open'); }
+      if (toggle) toggle.addEventListener('click', openDrawer);
+      if (overlay) overlay.addEventListener('click', closeDrawer);
+      if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
+      // Toggle thanh tìm kiếm
+      var sToggle = document.getElementById('searchToggle');
+      var sBar = document.getElementById('searchBar');
+      if (sToggle) sToggle.addEventListener('click', function () {
+        var show = sBar.classList.toggle('open');
+        if (show) { var i = sBar.querySelector('input'); if (i) i.focus(); }
+      });
+    })();
+  </script>
 </header>
 
 <!-- ===== FOOTER ===== -->
 <footer th:fragment="footer" class="site-footer">
   <div class="footer-cols">
     <div>
-      <h4>HuyRC</h4>
+      <h4>MoPo</h4>
       <p>Thời trang nam tối giản, chất liệu công nghệ. Demo cửa hàng dựng bằng Spring Boot + Thymeleaf + MySQL.</p>
     </div>
     <div>
@@ -62,7 +105,7 @@
       <a href="#">Youtube</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 HuyRC — Demo project. Không phải cửa hàng thật.</div>
+  <div class="footer-bottom">© 2026 MoPo — Demo project. Không phải cửa hàng thật.</div>
 </footer>
 
 </body>

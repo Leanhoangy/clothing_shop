@@ -48,7 +48,7 @@ public class AuthController {
         User u = new User();
         u.setFullName(form.getFullName().trim());
         u.setEmail(form.getEmail().trim().toLowerCase());
-        u.setPassword(form.getPassword());
+        u.setPassword(passwordEncoder.encode(form.getPassword()));   // ma hoa BCrypt
         u.setPhone(form.getPhone());
         u.setRole("CUSTOMER");
         u.setEnabled(true);

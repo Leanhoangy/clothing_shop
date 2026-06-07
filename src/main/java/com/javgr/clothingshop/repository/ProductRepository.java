@@ -28,4 +28,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
            "LEFT JOIN FETCH p.category " +
            "WHERE p.id = :id")
     Optional<Product> findByIdWithDetails(Integer id);
+
+    @Query("SELECT DISTINCT p FROM Product p " +
+           "LEFT JOIN FETCH p.images " +
+           "LEFT JOIN FETCH p.category " +
+           "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) " +
+           "ORDER BY p.id")
+    List<Product> searchByName(@Param("q") String q);
 }

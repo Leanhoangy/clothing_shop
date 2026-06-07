@@ -20,6 +20,9 @@ public class CartItem {
     @Column(name = "product_id", nullable = false)
     private Integer productId;
 
+    @Column(length = 10)
+    private String size;            // kich co da chon (S/M/L/XL)
+
     @Column(nullable = false)
     private Integer quantity = 1;
 }

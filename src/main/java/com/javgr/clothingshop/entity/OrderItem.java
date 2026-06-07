@@ -26,6 +26,9 @@ public class OrderItem {
     @Column(name = "product_name", nullable = false, length = 150)
     private String productName;
 
+    @Column(length = 10)
+    private String size;            // kich co luc dat (snapshot)
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 

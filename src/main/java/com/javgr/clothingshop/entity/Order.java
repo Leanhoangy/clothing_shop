@@ -31,11 +31,26 @@ public class Order {
     @Column(nullable = false, length = 255)
     private String address;
 
+    @Column(length = 255)
+    private String note;                 // ghi chu (khong bat buoc)
+
+    @Column(name = "payment_method", nullable = false, length = 20)
+    private String paymentMethod = "CASH";   // CASH | BANK
+
+    @Column(name = "refund_bank", length = 100)
+    private String refundBank;               // ngan hang nhan hoan tien
+
+    @Column(name = "refund_account", length = 50)
+    private String refundAccount;            // so tai khoan nhan hoan tien
+
+    @Column(name = "refund_account_name", length = 150)
+    private String refundAccountName;        // chu tai khoan
+
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
     @Column(nullable = false, length = 20)
-    private String status = "PENDING";
+    private String status = "PROCESSING";   // PROCESSING | COMPLETED | CANCELLED
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;

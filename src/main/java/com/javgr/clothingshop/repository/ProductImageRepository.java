@@ -1,6 +1,5 @@
 package com.javgr.clothingshop.repository;
 
-import com.javgr.clothingshop.entity.Product;
 import com.javgr.clothingshop.entity.ProductImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đơn hàng của tôi — HuyRC</title>
+  <title>Đơn hàng của tôi — MoPo</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
   </head>
 <body>
@@ -11,6 +11,8 @@
 
   <div class="container">
     <h1 class="page-title">ĐƠN HÀNG CỦA TÔI</h1>
+    <div class="alert ok"    th:if="${msg}" th:text="${msg}"></div>
+    <div class="alert error" th:if="${err}" th:text="${err}"></div>
 
     <div class="empty" th:if="${#lists.isEmpty(orders)}">
       <p>Bạn chưa có đơn hàng nào.</p>
@@ -25,9 +27,23 @@
         <tr th:each="o : ${orders}">
           <td th:text="'#' + ${o.id}">#1</td>
           <td th:text="${o.createdAt != null} ? ${#temporals.format(o.createdAt,'dd/MM/yyyy HH:mm')} : '-'">-</td>
-          <td><span class="status" th:text="${o.status}">PENDING</span></td>
+          <td>
+            <span class="status"
+                  th:classappend="${o.status == 'COMPLETED'} ? ' done' : (${o.status == 'CANCELLED'} ? ' cancel' : (${o.status == 'REFUNDING'} ? ' refund' : ' proc'))"
+                  th:text="${o.status == 'COMPLETED'} ? 'Hoàn thành' : (${o.status == 'CANCELLED'} ? 'Đã huỷ' : (${o.status == 'REFUNDING'} ? 'Chờ hoàn tiền' : 'Đang xử lý'))">Đang xử lý</span>
+          </td>
           <td th:text="${#numbers.formatDecimal(o.totalAmount,0,'POINT',0,'NONE')} + 'đ'">0đ</td>
-          <td><a class="view-all" th:href="@{/orders/{id}(id=${o.id})}">Xem →</a></td>
+          <td class="order-row-actions">
+            <a class="view-all" th:href="@{/orders/{id}(id=${o.id})}">Xem</a>
+            <!-- Tiền mặt: huỷ ngay; Chuyển khoản: vào chi tiết nhập STK hoàn tiền -->
+            <form th:if="${o.status == 'PROCESSING' and o.paymentMethod != 'BANK'}"
+                  th:action="@{/orders/{id}/cancel(id=${o.id})}" method="post"
+                  onsubmit="return confirm('Xác nhận huỷ đơn?')">
+              <button class="btn-cancel" type="submit">Huỷ đơn</button>
+            </form>
+            <a th:if="${o.status == 'PROCESSING' and o.paymentMethod == 'BANK'}"
+               class="btn-cancel" th:href="@{/orders/{id}(id=${o.id})}">Huỷ đơn</a>
+          </td>
         </tr>
       </tbody>
     </table>

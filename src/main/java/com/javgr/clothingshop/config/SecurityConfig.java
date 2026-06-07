@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -13,10 +13,10 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    // Tạm thời dùng password plain text, sẽ cải tiến sau
+    // Ma hoa mat khau bang BCrypt
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -36,7 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/products/**", "/api/**",
+                .requestMatchers("/", "/products/**", "/search", "/api/**",
                         "/css/**", "/images/**", "/js/**",
                         "/login", "/register", "/admin/css/**", "/admin/js/**", "/admin/images/**").permitAll()
                 .requestMatchers("/account/**", "/cart/**", "/orders/**", "/checkout/**").authenticated()

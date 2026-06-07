@@ -22,6 +22,9 @@ public class Category {
     @Column(nullable = false, length = 100, unique = true)
     private String slug;
 
+    @Column(name = "parent_id")
+    private Integer parentId;   // null = nhom cha; co gia tri = danh muc con
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 }

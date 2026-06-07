@@ -2,7 +2,7 @@
 <html th:replace="admin/layout">
 <body>
   <div th:fragment="content" class="max-w-7xl mx-auto">
-    <h1 class="text-2xl font-semibold mb-6">Dashboard</h1>
+    <h1 class="text-2xl font-semibold mb-6">Bảng điều khiển</h1>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <div class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -40,15 +40,15 @@
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead>
               <tr class="text-left text-sm text-gray-500">
-                <th class="px-3 py-2">Order</th>
-                <th class="px-3 py-2">Customer</th>
-                <th class="px-3 py-2">Amount</th>
-                <th class="px-3 py-2">Status</th>
+                <th class="px-3 py-2">Mã đơn</th>
+                <th class="px-3 py-2">Khách hàng</th>
+                <th class="px-3 py-2">Số tiền</th>
+                <th class="px-3 py-2">Trạng thái</th>
               </tr>
             </thead>
             <tbody id="orders-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
               <tr th:if="${latestOrders.content.isEmpty()}">
-                <td colspan="4" class="px-3 py-3 text-sm text-gray-500">No recent orders</td>
+                <td colspan="4" class="px-3 py-3 text-sm text-gray-500">Chưa có đơn hàng</td>
               </tr>
               <tr th:each="o : ${latestOrders.content}" class="table-row-hover">
                 <td class="px-3 py-3" th:text="${'ORD-' + o.id}"></td>
@@ -61,9 +61,9 @@
         </div>
 
         <div class="mt-4 flex items-center justify-between">
-          <div id="orders-empty" class="hidden text-sm text-gray-500">No orders</div>
+          <div id="orders-empty" class="hidden text-sm text-gray-500">Không có đơn</div>
           <div class="flex items-center gap-2">
-            <a href="/admin/orders" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200">View All Orders</a>
+            <a href="/admin/orders" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200">Xem tất cả đơn hàng</a>
           </div>
         </div>
       </section>
@@ -72,7 +72,7 @@
 
 <script th:inline="javascript">
 /*<![CDATA[*/
-  var ADMIN_MONTHLY = [[${monthly}]];
+  var ADMIN_MONTHLY = /*[[${monthly}]]*/ [];
 /*]]>*/
 </script>
 </body>

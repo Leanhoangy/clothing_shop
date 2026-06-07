@@ -63,7 +63,7 @@ public class AdminProductController {
         );
 
         model.addAttribute("productForm", productForm);
-        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("categories", categoryRepository.findByParentIdIsNotNullOrderById());
 
         return "admin/product-form";
     }
@@ -88,7 +88,7 @@ public class AdminProductController {
 
         model.addAttribute("productForm", dto);
         model.addAttribute("product", product);
-        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("categories", categoryRepository.findByParentIdIsNotNullOrderById());
 
         return "admin/product-form";
     }
@@ -190,7 +190,7 @@ public class AdminProductController {
 
     private String productFormWithError(ProductFormDto form, Model model, String message) {
         model.addAttribute("productForm", form);
-        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("categories", categoryRepository.findByParentIdIsNotNullOrderById());
         model.addAttribute("uploadError", message);
 
         if (form.id() != null) {

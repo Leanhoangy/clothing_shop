@@ -1,5 +1,7 @@
 package com.javgr.clothingshop.controller;
 
+import com.javgr.clothingshop.dto.CategoryGroup;
+import com.javgr.clothingshop.entity.Category;
 import com.javgr.clothingshop.repository.CategoryRepository;
 import com.javgr.clothingshop.repository.ProductRepository;
 import org.springframework.stereotype.Controller;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 public class ShopController {
@@ -25,8 +29,21 @@ public class ShopController {
     @GetMapping("/")
     @Transactional(readOnly = true)
     public String index(@RequestParam(value = "categoryId", required = false) Integer categoryId, Model model) {
-        model.addAttribute("categories", categoryRepository.findAll());
+        // Menu phan cap: moi nhom cha + cac danh muc con
+        List<CategoryGroup> groups = categoryRepository.findByParentIdIsNullOrderById().stream()
+                .map(parent -> new CategoryGroup(parent,
+                        categoryRepository.findByParentIdOrderById(parent.getId())))
+                .toList();
+        model.addAttribute("groups", groups);
         model.addAttribute("selectedCategoryId", categoryId);
+
+        // Ten danh muc dang chon (de hien tieu de)
+        String selectedName = null;
+        if (categoryId != null) {
+            selectedName = categoryRepository.findById(categoryId).map(Category::getName).orElse(null);
+        }
+        model.addAttribute("selectedCategoryName", selectedName);
+
         model.addAttribute(
                 "products",
                 categoryId == null

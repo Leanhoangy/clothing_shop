@@ -7,7 +7,7 @@
     <div th:fragment="content" class="max-w-7xl mx-auto">
         <div class="bg-white rounded-lg shadow p-6">
             <h1 class="text-2xl font-bold mb-6"
-                th:text="${productForm.id() == null ? 'Them san pham' : 'Cap nhat san pham'}">
+                th:text="${productForm.id() == null ? 'Thêm sản phẩm' : 'Cập nhật sản phẩm'}">
             </h1>
 
             <div th:if="${uploadError != null}"
@@ -25,7 +25,7 @@
 
                 <div class="mb-4">
                     <label class="block mb-2 font-medium">
-                        Ten san pham
+                        Tên sản phẩm
                     </label>
 
                     <input type="text"
@@ -37,7 +37,7 @@
 
                 <div class="mb-4">
                     <label class="block mb-2 font-medium">
-                        Mo ta
+                        Mô tả
                     </label>
 
                     <textarea name="description"
@@ -50,7 +50,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block mb-2 font-medium">
-                            Gia
+                            Giá
                         </label>
 
                         <input type="number"
@@ -63,7 +63,7 @@
 
                     <div>
                         <label class="block mb-2 font-medium">
-                            Ton kho
+                            Tồn kho
                         </label>
 
                         <input type="number"
@@ -76,7 +76,7 @@
 
                 <div class="mt-4">
                     <label class="block mb-2 font-medium">
-                        Danh muc
+                        Danh mục
                     </label>
 
                     <select name="categoryId"
@@ -84,7 +84,7 @@
                             required>
 
                         <option value="">
-                            -- Chon danh muc --
+                            -- Chọn danh mục --
                         </option>
 
                         <option th:each="c : ${categories}"
@@ -97,7 +97,7 @@
 
                 <div class="mt-4">
                     <label class="block mb-2 font-medium">
-                        Anh chinh / Thumbnail
+                        Ảnh chính / Thumbnail
                     </label>
 
                     <input type="file"
@@ -117,7 +117,7 @@
 
                 <div class="mt-4">
                     <label class="block mb-2 font-medium">
-                        Anh phu san pham
+                        Ảnh phụ sản phẩm
                     </label>
 
                     <input type="file"
@@ -127,7 +127,7 @@
                            class="w-full border rounded p-2">
 
                     <p class="text-sm text-gray-500 mt-1">
-                        Co the chon nhieu anh phu cung luc.
+                        Có thể chọn nhiều ảnh phụ cùng lúc.
                     </p>
                 </div>
 
@@ -135,7 +135,7 @@
                      th:if="${product != null and !#lists.isEmpty(product.images)}">
 
                     <label class="block mb-3 font-medium">
-                        Anh phu hien tai
+                        Ảnh phụ hiện tại
                     </label>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -151,12 +151,12 @@
                 <div class="mt-6 flex gap-3">
                     <button type="submit"
                             class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded">
-                        Luu san pham
+                        Lưu sản phẩm
                     </button>
 
                     <a th:href="@{/admin/products}"
                        class="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded">
-                        Huy
+                        Hủy
                     </a>
                 </div>
             </form>

@@ -3,25 +3,33 @@
 > Ghi chú định hướng phát triển cho project HuyRC (Spring Boot + Thymeleaf + MySQL).
 > Cập nhật: 2026-06-06
 
+## 🐞 Lỗi đã biết (cần sửa)
+
+- [ ] **Biểu đồ doanh thu admin đang hiển thị số liệu GIẢ (demo)**
+  Trang `/admin/dashboard` — biểu đồ "Doanh thu theo tháng" không vẽ số thật từ DB.
+  - Nguyên nhân: khối `<script>` chứa `ADMIN_MONTHLY` trong [dashboard.html](src/main/resources/templates/admin/dashboard.html)
+    nằm **ngoài** `<div th:fragment="content">`, mà [layout.html](src/main/resources/templates/admin/layout.html) chỉ chèn fragment `content`
+    → script bị bỏ qua → [admin.js](src/main/resources/static/admin/js/admin.js) dùng mảng demo mặc định.
+  - Cách sửa gợi ý: đưa dữ liệu `monthly` vào **trong** fragment qua data-attribute trên thẻ canvas
+    (vd `th:attr="data-monthly=${monthly}"`), rồi cho admin.js đọc & `JSON.parse`.
+
 ## 🎨 UI / Tính năng cho khách hàng
 
-- [ ] **Lọc sản phẩm theo danh mục**
-  Trên trang chủ, bấm vào mục danh mục (ví dụ "ÁO") thì chỉ hiện các sản phẩm thuộc danh mục đó.
-  - Hiện tại các pill danh mục (`TẤT CẢ / ÁO / QUẦN / GIÀY`) trong [index.html](src/main/resources/templates/index.html) chỉ là trang trí, chưa hoạt động.
-  - Gợi ý: thêm endpoint `GET /?category=ao` (hoặc `/category/{slug}`) trong [ShopController](src/main/java/com/javgr/clothingshop/controller/ShopController.java),
-    thêm query lọc theo category trong [ProductRepository](src/main/java/com/javgr/clothingshop/repository/ProductRepository.java),
-    cho pill thành link và highlight pill đang chọn.
+- [x] **Lọc sản phẩm theo danh mục** ✅ (xong 2026-06-07)
+  Bấm pill danh mục → `GET /?categoryId=...` lọc đúng sản phẩm; pill đang chọn được highlight.
+  - Đã cấu trúc lại DB thành **6 danh mục theo loại** (Áo sơ mi, Áo thun, Quần dài, Quần short, Giày da, Giày sneaker),
+    mỗi danh mục **10 sản phẩm** (mỗi ảnh = 1 sản phẩm) → tổng 60 sản phẩm. Xem [clothing_shop.sql](sql/clothing_shop.sql).
 
-- [ ] **Thông báo "đã thêm vào giỏ" thay vì chuyển thẳng tới trang giỏ hàng**
-  Khi bấm "THÊM VÀO GIỎ" ở [product.html](src/main/resources/templates/product.html), hiện báo thành công và **ở lại** trang sản phẩm
-  (chỉ "MUA NGAY" mới chuyển sang giỏ).
-  - Hiện tại `POST /cart/add` trong [CartController](src/main/java/com/javgr/clothingshop/controller/CartController.java) luôn `redirect:/cart`.
-  - Gợi ý: redirect về lại `/products/{id}?added` + hiện toast/alert; hoặc dùng AJAX (fetch) để thêm giỏ không tải lại trang, cập nhật số 🛒 trên header.
+- [x] **Thông báo "đã thêm vào giỏ" thay vì chuyển thẳng tới trang giỏ hàng** ✅ (xong 2026-06-07)
+  THÊM VÀO GIỎ → ở lại trang sản phẩm + hiện toast "Đã thêm sản phẩm vào giỏ hàng"; MUA NGAY → sang giỏ.
+  - `POST /cart/add` nhận thêm `action` (add/buy); add → `redirect:/products/{id}` + flash `added`, buy → `redirect:/cart`.
+  - Header 🛒 tự cập nhật vì trang tải lại sau redirect.
 
-- [ ] **Chức năng tìm kiếm sản phẩm**
-  Ô tìm kiếm 🔍 trên header cho gõ từ khoá → hiện sản phẩm khớp tên.
-  - Hiện icon 🔍 trong [fragments/layout.html](src/main/resources/templates/fragments/layout.html) chưa làm gì.
-  - Gợi ý: form `GET /search?q=...`, controller + `ProductRepository.findByNameContainingIgnoreCase(...)`, trang kết quả (tái dùng lưới sản phẩm của index).
+- [x] **Chức năng tìm kiếm sản phẩm** ✅ (xong 2026-06-07)
+  Bấm 🔍 → hiện thanh tìm kiếm; `GET /search?q=...` → [SearchController](src/main/java/com/javgr/clothingshop/controller/SearchController.java) + `ProductRepository.searchByName` → trang [search.html](src/main/resources/templates/search.html).
+
+- [x] **Menu danh mục dạng hamburger (☰)** ✅ (xong 2026-06-07)
+  Nút ☰ bên trái logo mở drawer trượt từ trái: "Tất cả sản phẩm" + 8 nhóm (bấm nhóm xổ danh mục con). Bỏ nav cũ (Trang phục/Áo/Quần/Giày/Sale). `groups` được cấp ở mọi trang qua [GlobalModelAttributes](src/main/java/com/javgr/clothingshop/controller/GlobalModelAttributes.java).
 
 ## 💡 Ý tưởng mở rộng (chưa ưu tiên)
 
