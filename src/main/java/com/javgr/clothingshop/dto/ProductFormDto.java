@@ -1,15 +1,13 @@
 package com.javgr.clothingshop.dto;
 
 import java.math.BigDecimal;
-import java.util.List;
 
-public record ProductDto(
+public record ProductFormDto(
         Integer id,
         String name,
         String description,
         BigDecimal price,
         Integer stock,
-        String category,
-        List<String> images
+        Integer categoryId
 ) {
 }

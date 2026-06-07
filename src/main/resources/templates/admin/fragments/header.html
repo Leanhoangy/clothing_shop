@@ -1,0 +1,27 @@
+<!-- Header fragment -->
+<div th:fragment="header">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-4">
+        <button id="mobile-menu-button" class="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">☰</button>
+        <div class="relative">
+          <input id="admin-search" type="search" placeholder="Search..." class="w-72 md:w-96 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button id="notif-btn" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Notifications">🔔</button>
+        <button id="dark-toggle" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle dark mode">🌙</button>
+
+        <div class="flex items-center gap-3">
+          <img src="/admin/images/avatar-placeholder.svg" alt="avatar" class="w-9 h-9 rounded-full bg-gray-300" />
+          <div class="text-sm">
+            <div class="font-medium">Admin</div>
+            <div class="text-xs text-gray-500">admin@example.com</div>
+          </div>
+          <a href="/logout" class="ml-2 px-3 py-1 rounded-md text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

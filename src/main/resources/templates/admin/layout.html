@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <meta name="description" content="Admin dashboard" />
+
+    <!-- Tailwind CDN for rapid, production-like UI (can be replaced by compiled Tailwind in prod) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = {darkMode: 'class'};</script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="/admin/css/admin.css">
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+    <div class="min-h-screen flex">
+      <aside class="w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:block">
+        <div th:insert="admin/fragments/sidebar :: sidebar"></div>
+      </aside>
+
+      <div class="flex-1 flex flex-col">
+        <header class="w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div th:insert="admin/fragments/header :: header"></div>
+        </header>
+
+        <main class="p-6 lg:p-10">
+          <div th:insert="::content">Replace with page content</div>
+        </main>
+      </div>
+    </div>
+
+    <script src="/admin/js/admin.js"></script>
+  </body>
+</html>
