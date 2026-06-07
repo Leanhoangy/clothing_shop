@@ -1,4 +1,4 @@
-package com.javgr.clothingshop.controller.user;
+package com.javgr.clothingshop.controller;
 
 import com.javgr.clothingshop.entity.Order;
 import com.javgr.clothingshop.entity.User;
@@ -24,14 +24,16 @@ public class OrderController {
         this.userRepository = userRepository;
     }
 
+    // Lich su don hang cua user
     @GetMapping
     @Transactional(readOnly = true)
     public String list(Authentication auth, Model model) {
         User u = currentUser(auth);
         model.addAttribute("orders", orderRepository.findByUserIdOrderByIdDesc(u.getId()));
-        return "user/orders";
+        return "orders";
     }
 
+    // Chi tiet / xac nhan 1 don hang
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     public String detail(@PathVariable Integer id, Authentication auth, Model model) {
@@ -40,9 +42,9 @@ public class OrderController {
         if (order == null) {
             return "redirect:/orders";
         }
-        order.getItems().size();
+        order.getItems().size();   // nap danh sach item trong transaction
         model.addAttribute("order", order);
-        return "user/order-detail";
+        return "order-detail";
     }
 
     private User currentUser(Authentication auth) {

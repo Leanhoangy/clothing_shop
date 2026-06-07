@@ -3,58 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HuyRC - Thoi trang nam</title>
+  <title>HuyRC - Thời trang nam</title>
   <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
   <div th:replace="~{fragments/layout :: header}"></div>
 
+  <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
-      <p class="hero-kicker">BO SUU TAP MOI</p>
-      <h1>SALE 6.6<br>DONG GIA CHI TU 67K</h1>
-      <p class="hero-sub">Ao - Quan - Giay - giam den 50% toan bo san pham</p>
+      <p class="hero-kicker">BỘ SƯU TẬP MỚI</p>
+      <h1>SALE 6.6<br>ĐỒNG GIÁ CHỈ TỪ 67K</h1>
+      <p class="hero-sub">Áo · Quần · Giày — giảm đến 50% toàn bộ sản phẩm</p>
       <a class="btn" href="#products">MUA NGAY</a>
     </div>
   </section>
 
+  <!-- DANH MỤC nhanh -->
   <div class="container">
     <div class="cat-strip">
-      <a class="cat-pill"
-         th:classappend="${selectedCategoryId == null} ? ' active'"
-         th:href="@{/}">
-        TAT CA
-      </a>
-
-      <a class="cat-pill"
-         th:each="c : ${categories}"
-         th:classappend="${selectedCategoryId == c.id} ? ' active'"
-         th:href="@{/(categoryId=${c.id})}"
-         th:text="${c.name}">
-        Danh muc
-      </a>
+      <span class="cat-pill active">TẤT CẢ</span>
+      <span class="cat-pill">ÁO</span>
+      <span class="cat-pill">QUẦN</span>
+      <span class="cat-pill">GIÀY</span>
     </div>
 
     <div class="section-head" id="products">
-      <h2 th:text="${selectedCategoryId == null ? 'SAN PHAM NOI BAT' : 'SAN PHAM THEO DANH MUC'}">
-        SAN PHAM NOI BAT
-      </h2>
-      <a class="view-all" th:href="@{/}">XEM TAT CA</a>
+      <h2>SẢN PHẨM NỔI BẬT</h2>
+      <a class="view-all" th:href="@{/}">XEM TẤT CẢ →</a>
     </div>
 
+    <!-- LƯỚI SẢN PHẨM -->
     <div class="grid">
       <a class="card" th:each="p : ${products}" th:href="@{/products/{id}(id=${p.id})}">
         <div class="thumb-wrap">
           <span class="tag" th:classappend="${p.stock < 40} ? ' hot' : ' new'"
-                th:text="${p.stock < 40} ? 'BAN CHAY' : 'HANG MOI'">TAG</span>
+                th:text="${p.stock < 40} ? 'BÁN CHẠY' : 'HÀNG MỚI'">TAG</span>
           <img class="thumb" th:src="@{'/' + ${p.thumbnail}}" th:alt="${p.name}" loading="lazy">
         </div>
         <div class="body">
-          <span class="cat" th:text="${p.category.name}">Danh muc</span>
-          <h3 th:text="${p.name}">Ten san pham</h3>
+          <span class="cat" th:text="${p.category.name}">Danh mục</span>
+          <h3 th:text="${p.name}">Tên sản phẩm</h3>
           <div class="price-row">
-            <span class="price" th:text="${#numbers.formatDecimal(p.price, 0, 'POINT', 0, 'NONE')} + 'd'">0d</span>
-            <span class="price-old" th:text="${#numbers.formatDecimal(p.price * 1.3, 0, 'POINT', 0, 'NONE')} + 'd'">0d</span>
+            <span class="price" th:text="${#numbers.formatDecimal(p.price, 0, 'POINT', 0, 'NONE')} + 'đ'">0đ</span>
+            <span class="price-old" th:text="${#numbers.formatDecimal(p.price * 1.3, 0, 'POINT', 0, 'NONE')} + 'đ'">0đ</span>
             <span class="discount">-23%</span>
           </div>
         </div>

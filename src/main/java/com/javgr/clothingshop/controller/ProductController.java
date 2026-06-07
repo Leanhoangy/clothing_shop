@@ -40,9 +40,11 @@ public class ProductController {
         return new ProductDto(
                 p.getId(),
                 p.getName(),
+                p.getSlug(),
                 p.getDescription(),
                 p.getPrice(),
                 p.getStock(),
+                p.getThumbnail(),
                 p.getCategory() != null ? p.getCategory().getName() : null,
                 p.getImages().stream().map(ProductImage::getImagePath).toList()
         );
