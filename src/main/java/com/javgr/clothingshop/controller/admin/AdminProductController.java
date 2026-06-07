@@ -7,15 +7,24 @@ import com.javgr.clothingshop.entity.ProductImage;
 import com.javgr.clothingshop.repository.CategoryRepository;
 import com.javgr.clothingshop.repository.ProductImageRepository;
 import com.javgr.clothingshop.repository.ProductRepository;
-import java.nio.file.Path;
-import java.util.UUID;import java.io.IOException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
+import java.text.Normalizer;
+import java.util.Locale;
+import java.util.UUID;
+import javax.imageio.ImageIO;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -35,22 +44,15 @@ public class AdminProductController {
         this.categoryRepository = categoryRepository;
     }
 
-    // Danh sách sản phẩm
     @GetMapping
     public String list(Model model) {
-
-        model.addAttribute(
-                "products",
-                productRepository.findAllWithDetails()
-        );
+        model.addAttribute("products", productRepository.findAllWithDetails());
 
         return "admin/products";
     }
 
-    // Form thêm sản phẩm
     @GetMapping("/add")
     public String addForm(Model model) {
-
         ProductFormDto productForm = new ProductFormDto(
                 null,
                 "",
@@ -66,7 +68,6 @@ public class AdminProductController {
         return "admin/product-form";
     }
 
-    // Form sửa sản phẩm
     @GetMapping("/edit/{id}")
     public String editForm(
             @PathVariable Integer id,
@@ -91,88 +92,117 @@ public class AdminProductController {
 
         return "admin/product-form";
     }
-    
-    // Lưu thêm hoặc sửa
+
     @PostMapping("/save")
     public String save(
             @ModelAttribute ProductFormDto form,
-            @RequestParam(value = "files", required = false) MultipartFile[] files
-    ) throws IOException {
+            @RequestParam(value = "thumbnailFile", required = false) MultipartFile thumbnailFile,
+            @RequestParam(value = "files", required = false) MultipartFile[] files,
+            Model model) {
 
-        // 1. GET or CREATE PRODUCT
-        Product product;
+        try {
+            if (form.categoryId() == null) {
+                throw new IllegalArgumentException("Vui long chon danh muc");
+            }
 
-        if (form.id() != null) {
-            product = productRepository.findById(form.id())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
-        } else {
-            product = new Product();
-        }
+            Product product = (form.id() != null)
+                    ? productRepository.findById(form.id()).orElseThrow()
+                    : new Product();
 
-        // 2. GET CATEGORY
-        Category category = categoryRepository.findById(form.categoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-
-        // 3. SET PRODUCT INFO
-        product.setName(form.name());
-        product.setDescription(form.description());
-        product.setPrice(form.price());
-        product.setStock(form.stock());
-        product.setCategory(category);
-
-        // 4. SAVE PRODUCT FIRST (important for FK)
-        product = productRepository.save(product);
-
-        // 5. HANDLE FILE UPLOAD
-        if (files != null && files.length > 0) {
-
+            Category category = categoryRepository.findById(form.categoryId()).orElseThrow();
             String folder = category.getSlug();
 
-            //  IMPORTANT: store outside resources
-            Path uploadDir = Paths.get("uploads/" + folder);
+            product.setName(form.name());
+            product.setDescription(form.description());
+            product.setPrice(form.price());
+            product.setStock(form.stock());
+            product.setCategory(category);
 
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
+            if (product.getSlug() == null || product.getSlug().isBlank()) {
+                product.setSlug(generateSlug(form.name()));
             }
 
-            // optional: reset sort order if new images
-            int sortOrder = productImageRepository.countByProduct(product) + 1;
+            if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+                product.setThumbnail(saveImage(thumbnailFile, folder));
+            }
 
-            for (MultipartFile file : files) {
+            product = productRepository.save(product);
 
-                if (file.isEmpty()) continue;
+            if (files != null && files.length > 0) {
+                int sortOrder = productImageRepository.countByProductId(product.getId()) + 1;
 
-                // unique filename
-                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                for (MultipartFile file : files) {
+                    if (file.isEmpty()) {
+                        continue;
+                    }
 
-                Path filePath = uploadDir.resolve(fileName);
+                    ProductImage image = new ProductImage();
+                    image.setProduct(product);
+                    image.setSortOrder(sortOrder++);
+                    image.setImagePath(saveImage(file, folder));
 
-                // save file to disk
-                Files.copy(
-                        file.getInputStream(),
-                        filePath,
-                        StandardCopyOption.REPLACE_EXISTING
-                );
+                    productImageRepository.save(image);
+                }
+            }
 
-                // save DB record
-                ProductImage image = new ProductImage();
-                image.setProduct(product);
-                image.setSortOrder(sortOrder++);
+            return "redirect:/admin/products";
+        } catch (IllegalArgumentException | IOException ex) {
+            return productFormWithError(form, model, ex.getMessage());
+        }
+    }
 
-                // IMPORTANT: URL path (NOT file system path)
-                image.setImagePath("/images/" + folder + "/" + fileName);
+    private String generateSlug(String name) {
+        String baseSlug = Normalizer.normalize(name, Normalizer.Form.NFD)
+                .replaceAll("\\u0111", "d")
+                .replaceAll("\\u0110", "D")
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-|-$)", "");
 
-                productImageRepository.save(image);
+        if (baseSlug.isBlank()) {
+            baseSlug = "san-pham";
+        }
+
+        return baseSlug + "-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private String saveImage(MultipartFile file, String folder) throws IOException {
+        try (InputStream inputStream = file.getInputStream()) {
+            if (ImageIO.read(inputStream) == null) {
+                throw new IllegalArgumentException("File upload khong phai hinh anh hop le");
             }
         }
 
-        return "redirect:/admin/products";
-    }
-    // Xóa sản phẩm
-    @GetMapping("/delete/{id}")
-    public String delete(
-            @PathVariable Integer id) {
+        Path uploadDir = Paths.get("src/main/resources/static/images", folder);
 
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+
+        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Path filePath = uploadDir.resolve(fileName);
+
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        return "images/" + folder + "/" + fileName;
+    }
+
+    private String productFormWithError(ProductFormDto form, Model model, String message) {
+        model.addAttribute("productForm", form);
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("uploadError", message);
+
+        if (form.id() != null) {
+            productRepository.findByIdWithDetails(form.id())
+                    .ifPresent(product -> model.addAttribute("product", product));
+        }
+
+        return "admin/product-form";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable Integer id) {
         productRepository.deleteById(id);
 
         return "redirect:/admin/products";

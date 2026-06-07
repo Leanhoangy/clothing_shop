@@ -12,6 +12,5 @@ public interface ProductImageRepository
     List<ProductImage> findByProductId(Integer productId);
 
     void deleteByProductId(Integer productId);
-    int countByProduct(Product product);
-
+    int countByProductId(Integer productId);
 }
