@@ -55,10 +55,8 @@ public class AdminProductController {
                 null,
                 "",
                 "",
-                "",
                 null,
                 0,
-                "",
                 null
         );
 
@@ -81,11 +79,9 @@ public class AdminProductController {
         ProductFormDto dto = new ProductFormDto(
                 product.getId(),
                 product.getName(),
-                product.getSlug(),
                 product.getDescription(),
                 product.getPrice(),
                 product.getStock(),
-                product.getThumbnail(),
                 product.getCategory().getId()
         );
 
@@ -100,75 +96,71 @@ public class AdminProductController {
     @PostMapping("/save")
     public String save(
             @ModelAttribute ProductFormDto form,
-            @RequestParam(value = "files", required = false)
-            MultipartFile[] files
+            @RequestParam(value = "files", required = false) MultipartFile[] files
     ) throws IOException {
 
+        // 1. GET or CREATE PRODUCT
         Product product;
 
         if (form.id() != null) {
-            product = productRepository
-                    .findById(form.id())
-                    .orElseThrow();
+            product = productRepository.findById(form.id())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
         } else {
             product = new Product();
         }
 
-        Category category = categoryRepository
-                .findById(form.categoryId())
-                .orElseThrow();
+        // 2. GET CATEGORY
+        Category category = categoryRepository.findById(form.categoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
 
+        // 3. SET PRODUCT INFO
         product.setName(form.name());
-        product.setSlug(form.slug());
         product.setDescription(form.description());
         product.setPrice(form.price());
         product.setStock(form.stock());
-        product.setThumbnail(form.thumbnail());
         product.setCategory(category);
 
+        // 4. SAVE PRODUCT FIRST (important for FK)
         product = productRepository.save(product);
 
-        // Upload ảnh
+        // 5. HANDLE FILE UPLOAD
         if (files != null && files.length > 0) {
 
             String folder = category.getSlug();
 
-            Path uploadDir = Paths.get(
-                    "src/main/resources/static/images/" + folder
-            );
+            //  IMPORTANT: store outside resources
+            Path uploadDir = Paths.get("uploads/" + folder);
 
             if (!Files.exists(uploadDir)) {
                 Files.createDirectories(uploadDir);
             }
 
-            int sortOrder = 1;
+            // optional: reset sort order if new images
+            int sortOrder = productImageRepository.countByProduct(product) + 1;
 
             for (MultipartFile file : files) {
 
-                if (file.isEmpty()) {
-                    continue;
-                }
+                if (file.isEmpty()) continue;
 
-                String fileName =
-                        UUID.randomUUID()
-                        + "_"
-                        + file.getOriginalFilename();
+                // unique filename
+                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
                 Path filePath = uploadDir.resolve(fileName);
 
+                // save file to disk
                 Files.copy(
                         file.getInputStream(),
                         filePath,
                         StandardCopyOption.REPLACE_EXISTING
                 );
 
+                // save DB record
                 ProductImage image = new ProductImage();
-
                 image.setProduct(product);
-                image.setImagePath(
-                        "/images/" + folder + "/" + fileName
-                );
                 image.setSortOrder(sortOrder++);
+
+                // IMPORTANT: URL path (NOT file system path)
+                image.setImagePath("/images/" + folder + "/" + fileName);
 
                 productImageRepository.save(image);
             }
