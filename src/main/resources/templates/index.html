@@ -29,8 +29,6 @@
     <div class="grid">
       <a class="card" th:each="p : ${products}" th:href="@{/products/{id}(id=${p.id})}">
         <div class="thumb-wrap">
-          <span class="tag" th:classappend="${p.stock < 40} ? ' hot' : ' new'"
-                th:text="${p.stock < 40} ? 'BÁN CHẠY' : 'HÀNG MỚI'">TAG</span>
           <img class="thumb" th:src="@{'/' + ${p.thumbnail}}" th:alt="${p.name}" loading="lazy">
         </div>
         <div class="body">
@@ -38,8 +36,6 @@
           <h3 th:text="${p.name}">Tên sản phẩm</h3>
           <div class="price-row">
             <span class="price" th:text="${#numbers.formatDecimal(p.price, 0, 'POINT', 0, 'NONE')} + 'đ'">0đ</span>
-            <span class="price-old" th:text="${#numbers.formatDecimal(p.price * 1.3, 0, 'POINT', 0, 'NONE')} + 'đ'">0đ</span>
-            <span class="discount">-23%</span>
           </div>
         </div>
       </a>

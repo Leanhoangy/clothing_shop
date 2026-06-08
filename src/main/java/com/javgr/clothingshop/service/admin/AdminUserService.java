@@ -16,6 +16,11 @@ public class AdminUserService {
     }
 
     public Page<User> listUsers(int page, int size) {
-        return userRepository.findAll(PageRequest.of(page, size));
+        return userRepository.findAllByOrderByIdDesc(PageRequest.of(page, size));
+    }
+
+    public Page<User> searchUsers(String q, int page, int size) {
+        return userRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrderByIdDesc(
+                q, q, PageRequest.of(page, size));
     }
 }

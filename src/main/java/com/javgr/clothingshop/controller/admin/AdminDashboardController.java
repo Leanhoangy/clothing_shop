@@ -23,7 +23,12 @@ public class AdminDashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping({"/","/dashboard"})
+    @GetMapping("/")
+    public String index() {
+        return "redirect:/admin/reports";
+    }
+
+    @GetMapping("/dashboard")
     public String dashboard(Model model, @RequestParam(defaultValue = "0") int page) {
         BigDecimal totalRevenue = dashboardService.getTotalRevenue();
         long totalOrders = dashboardService.getTotalOrders();
@@ -33,12 +38,14 @@ public class AdminDashboardController {
 
         Page<Order> latest = dashboardService.latestOrders(page, 5);
 
+        int currentYear = java.time.LocalDate.now().getYear();
         model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("totalOrders", totalOrders);
         model.addAttribute("totalUsers", totalUsers);
         model.addAttribute("growth", growth);
         model.addAttribute("monthly", monthly);
         model.addAttribute("latestOrders", latest);
+        model.addAttribute("currentYear", currentYear);
         return "admin/dashboard";
     }
 }

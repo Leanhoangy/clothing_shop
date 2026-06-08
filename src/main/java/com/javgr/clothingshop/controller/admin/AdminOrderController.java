@@ -4,6 +4,7 @@ import com.javgr.clothingshop.entity.Order;
 import com.javgr.clothingshop.entity.OrderItem;
 import com.javgr.clothingshop.repository.OrderRepository;
 import com.javgr.clothingshop.repository.ProductRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/orders")
@@ -25,8 +28,13 @@ public class AdminOrderController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("orders", orderRepository.findAll());
+    public String list(@RequestParam(defaultValue = "") String q,
+                       @RequestParam(defaultValue = "0") int page, Model model) {
+        var orders = q.isBlank()
+                ? orderRepository.findAllByOrderByIdDesc(PageRequest.of(page, 20))
+                : orderRepository.findByRecipientNameContainingIgnoreCaseOrderByIdDesc(q.trim(), PageRequest.of(page, 20));
+        model.addAttribute("orders", orders);
+        model.addAttribute("q", q);
         return "admin/orders";
     }
 
@@ -78,13 +86,26 @@ public class AdminOrderController {
     }
 
     // Admin: xac nhan da hoan tien -> Da huy (chi tu trang thai Cho hoan tien)
+    @PostMapping("/{id}/confirm-payment")
+    @Transactional
+    public String confirmPayment(@PathVariable Integer id, RedirectAttributes ra) {
+        Order order = orderRepository.findById(id).orElse(null);
+        if (order != null && "PENDING_PAYMENT".equals(order.getStatus())) {
+            order.setStatus("PROCESSING");
+            orderRepository.save(order);
+            ra.addFlashAttribute("success", "Đã xác nhận thanh toán cho đơn #" + id + ". Đơn chuyển sang trạng thái đang xử lý.");
+        }
+        return "redirect:/admin/orders/" + id;
+    }
+
     @PostMapping("/{id}/refunded")
     @Transactional
-    public String refunded(@PathVariable Integer id) {
+    public String refunded(@PathVariable Integer id, RedirectAttributes ra) {
         Order order = orderRepository.findById(id).orElse(null);
         if (order != null && "REFUNDING".equals(order.getStatus())) {
             order.setStatus("CANCELLED");
             orderRepository.save(order);
+            ra.addFlashAttribute("success", "Đã hoàn tiền thành công cho đơn #" + id);
         }
         return "redirect:/admin/orders/" + id;
     }

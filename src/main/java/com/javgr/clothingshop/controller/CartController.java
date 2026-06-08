@@ -6,6 +6,7 @@ import com.javgr.clothingshop.repository.CartItemRepository;
 import com.javgr.clothingshop.repository.OrderRepository;
 import com.javgr.clothingshop.repository.ProductRepository;
 import com.javgr.clothingshop.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,10 @@ import java.util.List;
 @Controller
 @RequestMapping("/cart")
 public class CartController {
+
+    @Value("${shop.bank.id}")   private String bankId;
+    @Value("${shop.bank.account}") private String bankAccount;
+    @Value("${shop.bank.name}") private String bankName;
 
     private final CartItemRepository cartRepository;
     private final ProductRepository productRepository;
@@ -88,6 +93,9 @@ public class CartController {
         model.addAttribute("lines", lines);
         model.addAttribute("total", total);
         model.addAttribute("user", u);
+        model.addAttribute("bankId", bankId);
+        model.addAttribute("bankAccount", bankAccount);
+        model.addAttribute("bankName", bankName);
         return "cart";
     }
 
@@ -147,8 +155,9 @@ public class CartController {
         order.setPhone(phone);
         order.setAddress(address);
         order.setNote(note);
-        order.setPaymentMethod("BANK".equals(paymentMethod) ? "BANK" : "CASH");
-        order.setStatus("PROCESSING");        // dang xu ly
+        boolean isBank = "BANK".equals(paymentMethod);
+        order.setPaymentMethod(isBank ? "BANK" : "CASH");
+        order.setStatus(isBank ? "PENDING_PAYMENT" : "PROCESSING");
 
         BigDecimal total = BigDecimal.ZERO;
         for (CartItem ci : items) {

@@ -1,4 +1,4 @@
-package com.javgr.clothingshop.config;
+﻿package com.javgr.clothingshop.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,7 @@ public class SecurityConfig {
             boolean isAdmin = authentication.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
             if (isAdmin) {
-                response.sendRedirect("/admin/dashboard");
+                response.sendRedirect("/admin/reports");
             } else {
                 response.sendRedirect("/");
             }
