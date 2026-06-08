@@ -6,6 +6,7 @@ import com.javgr.clothingshop.entity.User;
 import com.javgr.clothingshop.repository.OrderRepository;
 import com.javgr.clothingshop.repository.ProductRepository;
 import com.javgr.clothingshop.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/orders")
 public class OrderController {
+
+    @Value("${shop.bank.id}")      private String bankId;
+    @Value("${shop.bank.account}") private String bankAccount;
+    @Value("${shop.bank.name}")    private String bankName;
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
@@ -50,6 +55,9 @@ public class OrderController {
         }
         order.getItems().size();
         model.addAttribute("order", order);
+        model.addAttribute("bankId", bankId);
+        model.addAttribute("bankAccount", bankAccount);
+        model.addAttribute("bankName", bankName);
         return "user/order-detail";
     }
 
@@ -66,14 +74,16 @@ public class OrderController {
         if (order == null) {
             return "redirect:/orders";
         }
-        if (!"PROCESSING".equals(order.getStatus())) {
+        String status = order.getStatus();
+        if (!"PROCESSING".equals(status) && !"PENDING_PAYMENT".equals(status)) {
             ra.addFlashAttribute("err", "Đơn hàng này không thể huỷ.");
             return "redirect:/orders";
         }
 
         boolean isBank = "BANK".equals(order.getPaymentMethod());
-        // Don chuyen khoan: bat buoc nhap thong tin nhan hoan tien
-        if (isBank && (refundAccount == null || refundAccount.isBlank()
+        // Don chuyen khoan da dat (PROCESSING): bat buoc nhap thong tin hoan tien
+        // Don chua thanh toan (PENDING_PAYMENT): huy thang, khong can nhap STK
+        if ("PROCESSING".equals(status) && isBank && (refundAccount == null || refundAccount.isBlank()
                 || refundBank == null || refundBank.isBlank())) {
             ra.addFlashAttribute("err", "Đơn chuyển khoản: vui lòng nhập ngân hàng và số tài khoản để nhận hoàn tiền.");
             return "redirect:/orders/" + id;
@@ -88,15 +98,19 @@ public class OrderController {
             });
         }
 
-        if (isBank) {
-            order.setStatus("REFUNDING");      // cho admin hoan tien
+        if ("PENDING_PAYMENT".equals(status)) {
+            // Chua thanh toan -> huy thang, khong can hoan tien
+            order.setStatus("CANCELLED");
+            ra.addFlashAttribute("msg", "Đã huỷ đơn #" + id + ".");
+        } else if (isBank) {
+            order.setStatus("REFUNDING");
             order.setRefundBank(refundBank.trim());
             order.setRefundAccount(refundAccount.trim());
             order.setRefundAccountName(refundAccountName != null ? refundAccountName.trim() : null);
-            ra.addFlashAttribute("msg", "Đã huỷ đơn #" + id + ". Đơn chuyển khoản đang chờ shop hoàn tiền.");
+            ra.addFlashAttribute("msg", "Đã gửi yêu cầu hoàn tiền cho đơn #" + id + ".");
         } else {
             order.setStatus("CANCELLED");
-            ra.addFlashAttribute("msg", "Đã huỷ đơn #" + id + " và hoàn lại số lượng vào kho.");
+            ra.addFlashAttribute("msg", "Đã huỷ đơn #" + id + ".");
         }
         orderRepository.save(order);
         return "redirect:/orders";

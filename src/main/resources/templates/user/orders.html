@@ -29,8 +29,8 @@
           <td th:text="${o.createdAt != null} ? ${#temporals.format(o.createdAt,'dd/MM/yyyy HH:mm')} : '-'">-</td>
           <td>
             <span class="status"
-                  th:classappend="${o.status == 'COMPLETED'} ? ' done' : (${o.status == 'CANCELLED'} ? ' cancel' : (${o.status == 'REFUNDING'} ? ' refund' : ' proc'))"
-                  th:text="${o.status == 'COMPLETED'} ? 'Hoàn thành' : (${o.status == 'CANCELLED'} ? 'Đã huỷ' : (${o.status == 'REFUNDING'} ? 'Chờ hoàn tiền' : 'Đang xử lý'))">Đang xử lý</span>
+                  th:classappend="${o.status == 'COMPLETED'} ? ' done' : (${o.status == 'CANCELLED'} ? ' cancel' : (${o.status == 'REFUNDING'} ? ' refund' : (${o.status == 'PENDING_PAYMENT'} ? ' pending-pay' : ' proc')))"
+                  th:text="${o.status == 'COMPLETED'} ? 'Hoàn thành' : (${o.status == 'CANCELLED'} ? 'Đã huỷ' : (${o.status == 'REFUNDING'} ? 'Chờ hoàn tiền' : (${o.status == 'PENDING_PAYMENT'} ? 'Chờ thanh toán' : 'Đang xử lý')))">Đang xử lý</span>
           </td>
           <td th:text="${#numbers.formatDecimal(o.totalAmount,0,'POINT',0,'NONE')} + 'đ'">0đ</td>
           <td class="order-row-actions">

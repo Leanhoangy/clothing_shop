@@ -3,6 +3,7 @@ package com.javgr.clothingshop.controller.user;
 import com.javgr.clothingshop.entity.User;
 import com.javgr.clothingshop.repository.UserRepository;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -17,9 +18,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AccountController {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AccountController(UserRepository userRepository) {
+    public AccountController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Trang thong tin ca nhan
@@ -43,6 +46,31 @@ public class AccountController {
         u.setPhone(phone);
         userRepository.save(u);
         ra.addFlashAttribute("updated", true);
+        return "redirect:/account";
+    }
+
+    @PostMapping("/change-password")
+    @Transactional
+    public String changePassword(@RequestParam String currentPassword,
+                                 @RequestParam String newPassword,
+                                 @RequestParam String confirmPassword,
+                                 Authentication auth, RedirectAttributes ra) {
+        User u = currentUser(auth);
+        if (!passwordEncoder.matches(currentPassword, u.getPassword())) {
+            ra.addFlashAttribute("pwdError", "Mật khẩu hiện tại không đúng.");
+            return "redirect:/account";
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            ra.addFlashAttribute("pwdError", "Mật khẩu mới không khớp.");
+            return "redirect:/account";
+        }
+        if (newPassword.length() < 6) {
+            ra.addFlashAttribute("pwdError", "Mật khẩu mới phải có ít nhất 6 ký tự.");
+            return "redirect:/account";
+        }
+        u.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(u);
+        ra.addFlashAttribute("pwdSuccess", "Đổi mật khẩu thành công.");
         return "redirect:/account";
     }
 

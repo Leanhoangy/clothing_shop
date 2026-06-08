@@ -75,13 +75,24 @@
           <label>Phương thức thanh toán</label>
           <div class="pay-methods">
             <label class="pay-option">
-              <input type="radio" name="paymentMethod" value="CASH" checked>
+              <input type="radio" name="paymentMethod" value="CASH" checked onclick="showPayInfo('cash')">
               <span>💵 Thanh toán tiền mặt</span>
             </label>
             <label class="pay-option">
-              <input type="radio" name="paymentMethod" value="BANK">
+              <input type="radio" name="paymentMethod" value="BANK" onclick="showPayInfo('bank')">
               <span>🏦 Thanh toán chuyển khoản</span>
             </label>
+          </div>
+
+          <!-- Preview QR chuyển khoản -->
+          <div id="bank-info" style="display:none;margin:12px 0;padding:14px;background:#f0f4ff;border:1px solid #c7d2fe;border-radius:10px;text-align:center">
+            <p style="font-size:13px;color:#4338ca;font-weight:600;margin-bottom:10px">📱 Sau khi đặt hàng, bạn sẽ thấy mã QR để chuyển khoản</p>
+            <img th:src="@{'https://img.vietqr.io/image/' + ${bankId} + '-' + ${bankAccount} + '-compact.png?accountName=' + ${bankName}}"
+                 alt="QR Chuyển khoản" style="width:160px;border-radius:8px;border:1px solid #e0e7ff">
+            <p style="font-size:12px;color:#6b7280;margin-top:8px">
+              <strong th:text="${bankName}"></strong><br>
+              STK: <strong th:text="${bankAccount}"></strong>
+            </p>
           </div>
 
           <div class="summary-total">
@@ -93,6 +104,12 @@
       </aside>
     </div>
   </div>
+
+  <script>
+    function showPayInfo(type) {
+      document.getElementById('bank-info').style.display = type === 'bank' ? 'block' : 'none';
+    }
+  </script>
 
   <div th:replace="~{fragments/layout :: footer}"></div>
 </body>

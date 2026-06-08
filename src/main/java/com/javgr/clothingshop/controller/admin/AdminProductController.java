@@ -17,6 +17,7 @@ import java.text.Normalizer;
 import java.util.Locale;
 import java.util.UUID;
 import javax.imageio.ImageIO;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,9 +46,13 @@ public class AdminProductController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("products", productRepository.findAllWithDetails());
-
+    public String list(@RequestParam(defaultValue = "") String q,
+                       @RequestParam(defaultValue = "0") int page, Model model) {
+        var products = q.isBlank()
+                ? productRepository.findAllWithCategoryPaged(PageRequest.of(page, 20))
+                : productRepository.searchWithCategoryPaged(q.trim(), PageRequest.of(page, 20));
+        model.addAttribute("products", products);
+        model.addAttribute("q", q);
         return "admin/products";
     }
 

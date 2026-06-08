@@ -15,4 +15,10 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
     // Cac danh muc con cua mot nhom cha
     List<Category> findByParentIdOrderById(Integer parentId);
+
+    boolean existsBySlug(String slug);
+
+    List<Category> findByParentIdIsNullAndNameContainingIgnoreCaseOrderById(String name);
+
+    List<Category> findByParentIdIsNotNullAndNameContainingIgnoreCaseOrderById(String name);
 }
